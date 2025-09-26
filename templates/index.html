@@ -1,0 +1,182 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local LLM Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Manrope', 'sans-serif'],
+          },
+          colors: {
+            midnight: '#020617',
+          },
+          boxShadow: {
+            glow: '0 25px 60px rgba(15, 23, 42, 0.45)',
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased">
+  <div class="relative min-h-screen">
+    <div class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(40%_30%_at_50%_100%,_#1e1b4b_0%,_rgba(30,27,75,0)_100%)]"></div>
+
+    <div class="container mx-auto flex min-h-screen flex-col p-4">
+      <header class="sticky top-4 z-20 rounded-2xl border border-white/10 bg-slate-900/70 p-4 backdrop-blur-md">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-lg font-bold text-indigo-300">L</div>
+            <div>
+              <h1 class="text-lg font-semibold text-white">Local LLM</h1>
+              <p class="text-xs text-slate-400">Your friendly neighborhood chat UI</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="clearChat" type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-medium text-slate-300 transition hover:bg-white/10" title="Clear chat">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+            </button>
+            <button id="openSettings" type="button" class="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-medium text-slate-300 transition hover:bg-white/10" title="Settings">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="mt-4 flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-slate-900/60 p-4">
+        <div id="chat" class="flex h-full flex-col gap-4 overflow-y-auto">
+          <div class="message ai flex-shrink-0"><div class="bubble">Hi! I'm a friendly local chat bot. Configure your model and start a conversation.</div></div>
+        </div>
+      </main>
+
+      <footer class="mt-4">
+        <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-3 backdrop-blur-md">
+          <div id="visionTools" class="mb-2 hidden items-center gap-2 border-b border-white/10 pb-3">
+            <div id="imagePreview" class="hidden items-center gap-2">
+              <img id="imagePreviewImg" src="" alt="Preview" class="h-12 w-12 rounded-lg object-cover">
+              <div>
+                <p id="imagePreviewMeta" class="text-xs font-medium text-slate-200"></p>
+                <p class="text-xs text-slate-400">Image attached</p>
+              </div>
+              <button id="removeImageBtn" type="button" class="ml-auto h-7 w-7 rounded-full bg-white/10 text-slate-400 transition hover:bg-white/20 hover:text-white" title="Remove image">
+                <svg class="m-auto h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+            <div id="visionActions" class="flex items-center gap-2">
+              <button id="imageUploadBtn" type="button" class="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-white/5 text-xs text-slate-300 transition hover:bg-white/10">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2.4-3-4-5.4-4-1.6 0-3.1.8-4.2 2.1-.5-.2-1-.3-1.5-.3-2.4 0-4.4 2-4.4 4.4 0 .4.1.8.2 1.2" /><path d="M11 18.5v-7.8l-2.3 2.3" /><path d="m11 10.7 2.3 2.3" /></svg>
+                <span>Upload</span>
+              </button>
+              <button id="cameraCaptureBtn" type="button" class="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-white/5 text-xs text-slate-300 transition hover:bg-white/10">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+                <span>Camera</span>
+              </button>
+            </div>
+            <input id="imageFileInput" type="file" accept="image/*" class="hidden">
+            <input id="cameraFileInput" type="file" accept="image/*" capture="environment" class="hidden">
+          </div>
+          <div class="relative">
+            <textarea id="userInput" rows="1" placeholder="Ask a question..." class="w-full resize-none rounded-lg border border-white/10 bg-slate-800/70 py-3 pl-4 pr-28 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"></textarea>
+            <div class="absolute bottom-2 right-2 flex items-center gap-2">
+              <button id="stopBtn" type="button" class="hidden h-9 w-9 items-center justify-center rounded-lg bg-rose-500/90 text-white transition hover:bg-rose-500" title="Stop generation">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1" /></svg>
+              </button>
+              <button id="sendBtn" type="button" class="flex h-9 w-16 items-center justify-center rounded-lg bg-indigo-500 text-sm font-semibold text-white transition hover:bg-indigo-600" title="Send message">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <div id="settingsOverlay" class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm"></div>
+    <aside id="settingsDrawer" class="fixed right-0 top-0 z-50 flex h-full w-full max-w-md translate-x-full flex-col bg-slate-900/95 text-slate-100 shadow-2xl backdrop-blur-lg transition-transform duration-300">
+      <div class="flex items-center justify-between border-b border-white/10 p-4">
+        <h2 class="text-lg font-semibold text-white">Settings</h2>
+        <button id="closeSettings" type="button" class="h-8 w-8 rounded-lg text-slate-400 transition hover:bg-white/10 hover:text-white">
+          <svg class="m-auto h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+        </button>
+      </div>
+      <form id="settingsForm" class="flex-1 space-y-4 overflow-y-auto p-4">
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-300">Base URL</label>
+          <input id="baseUrl" type="text" class="w-full rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="http://localhost:1234/v1" required>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-300">Model</label>
+          <div class="flex gap-2">
+            <select id="modelSelect" class="flex-1 rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="">Select a model</option>
+            </select>
+            <button id="refreshModels" type="button" class="h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10" title="Refresh models">
+              <svg class="m-auto h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
+            </button>
+          </div>
+          <input id="modelId" type="text" class="w-full rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="Or enter custom model ID" required>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-300">API Key</label>
+          <input id="apiKey" type="password" class="w-full rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="Optional">
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-slate-300">Temperature</label>
+            <span id="tempVal" class="text-sm text-slate-400">0.7</span>
+          </div>
+          <input id="temperature" type="range" min="0" max="2" step="0.1" class="w-full">
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-300">Max Tokens</label>
+          <input id="maxTokens" type="number" min="1" class="w-full rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="Optional">
+        </div>
+        <div id="imageDetailWrapper" class="space-y-2">
+          <label class="text-sm font-medium text-slate-300">Image Detail</label>
+          <select id="imageDetail" class="w-full rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            <option value="low">Low (fast)</option>
+            <option value="auto">Auto</option>
+            <option value="high" selected>High (best quality)</option>
+          </select>
+          <p class="text-xs text-slate-500">High detail keeps sharper vision outputs; lower settings may respond faster.</p>
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-slate-300">System Prompt</label>
+          <textarea id="systemPrompt" rows="4" class="w-full resize-y rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" placeholder="You are a helpful assistant."></textarea>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="savePromptBtn" type="button" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10">Save to Library</button>
+            <select id="promptLibrarySelect" class="flex-1 rounded-lg border border-white/10 bg-slate-800/70 p-1.5 text-xs text-slate-300 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+              <option value="">Load from Library</option>
+            </select>
+          </div>
+        </div>
+      </form>
+      <div class="border-t border-white/10 p-4">
+        <button id="saveSettings" type="button" class="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Save and Close</button>
+      </div>
+    </aside>
+
+
+    <div id="toast" class="pointer-events-none fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 transform px-4">
+      <div class="pointer-events-auto rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white shadow-xl backdrop-blur"></div>
+    </div>
+  </div>
+
+  <script>
+    window.DEFAULTS = {
+      baseUrl: {{ default_base_url|tojson }},
+      modelId: {{ default_model|tojson }}
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
