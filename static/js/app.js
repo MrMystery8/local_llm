@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const aiMessage = addMessage("ai", "");
     const cursor = document.createElement("span");
     cursor.className = "typing";
-    cursor.textContent = "▍";
+    cursor.textContent = "…";
     aiMessage.content.appendChild(cursor);
 
     sendBtn.classList.add("hidden");
