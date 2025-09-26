@@ -314,6 +314,11 @@ input[type="range"]:disabled::-ms-fill-upper {
 input[type="range"]:disabled::-ms-thumb {
   background: rgba(148, 163, 184, 0.6);
   border-color: rgba(226, 232, 255, 0.55);
+
+.image-preview {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .bubble-footer {
