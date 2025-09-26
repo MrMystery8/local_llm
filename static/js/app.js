@@ -183,19 +183,20 @@ document.addEventListener("DOMContentLoaded", () => {
     return { wrapper, bubble, content: contentDiv, footer };
   }
 
-  function createFooterItem(icon, label, title = "") {
+  function createFooterMetric(name, value, title = "") {
     const span = document.createElement("span");
     span.className = "bubble-footer__item";
     if (title) span.title = title;
 
-    const iconSpan = document.createElement("span");
-    iconSpan.className = "bubble-footer__icon";
-    iconSpan.textContent = icon;
-    span.appendChild(iconSpan);
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "bubble-footer__name";
+    nameSpan.textContent = name;
+    span.appendChild(nameSpan);
 
-    const labelSpan = document.createElement("span");
-    labelSpan.textContent = label;
-    span.appendChild(labelSpan);
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "bubble-footer__value";
+    valueSpan.textContent = value;
+    span.appendChild(valueSpan);
 
     return span;
   }
@@ -210,19 +211,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const { prompt, completion, total, serverLatency, roundTripMs } = meta;
 
     if (typeof prompt === "number" && !Number.isNaN(prompt)) {
-      segments.push(createFooterItem("🧠", `${prompt.toLocaleString()} prompt`));
+      segments.push(
+        createFooterMetric("Prompt tokens", prompt.toLocaleString())
+      );
     }
     if (typeof completion === "number" && !Number.isNaN(completion)) {
-      segments.push(createFooterItem("✨", `${completion.toLocaleString()} completion`));
+      segments.push(
+        createFooterMetric("Completion tokens", completion.toLocaleString())
+      );
     }
     if (typeof total === "number" && !Number.isNaN(total)) {
-      segments.push(createFooterItem("Σ", `${total.toLocaleString()} total`));
+      segments.push(
+        createFooterMetric("Total tokens", total.toLocaleString())
+      );
     }
     if (typeof serverLatency === "number" && !Number.isNaN(serverLatency)) {
-      segments.push(createFooterItem("⚙️", `${serverLatency.toLocaleString()} ms`, "Server processing time"));
+      segments.push(
+        createFooterMetric(
+          "Model latency",
+          `${serverLatency.toLocaleString()} ms`,
+          "Server processing time"
+        )
+      );
     }
     if (typeof roundTripMs === "number" && !Number.isNaN(roundTripMs)) {
-      segments.push(createFooterItem("⏱️", `${roundTripMs.toLocaleString()} ms`, "Round-trip time"));
+      segments.push(
+        createFooterMetric(
+          "Round-trip latency",
+          `${roundTripMs.toLocaleString()} ms`,
+          "Request and response latency"
+        )
+      );
     }
 
     if (!segments.length) {
@@ -253,17 +272,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const label = document.createElement("span");
     label.className = "session-stats__label";
-    label.textContent = "Session";
+    label.textContent = "Session usage";
     sessionStats.appendChild(label);
 
     if (typeof promptTokens === "number") {
-      chips.push(createFooterItem("🧠", `${promptTokens.toLocaleString()} prompt`));
+      chips.push(
+        createFooterMetric("Prompt tokens", promptTokens.toLocaleString())
+      );
     }
     if (typeof completionTokens === "number") {
-      chips.push(createFooterItem("✨", `${completionTokens.toLocaleString()} completion`));
+      chips.push(
+        createFooterMetric(
+          "Completion tokens",
+          completionTokens.toLocaleString()
+        )
+      );
     }
     if (typeof totalTokens === "number") {
-      chips.push(createFooterItem("Σ", `${totalTokens.toLocaleString()} total`));
+      chips.push(
+        createFooterMetric("Total tokens", totalTokens.toLocaleString())
+      );
     }
 
     chips.forEach((chip) => {

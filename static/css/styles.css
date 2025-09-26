@@ -20,18 +20,25 @@ body {
 
 .bubble-footer__item {
   display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.15rem 0.5rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.25rem 0.55rem;
   border-radius: 9999px;
   background: rgba(148, 163, 184, 0.12);
   color: inherit;
   backdrop-filter: blur(6px);
 }
 
-.bubble-footer__icon {
-  font-size: 0.7rem;
-  line-height: 1;
+.bubble-footer__name {
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.bubble-footer__value {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .session-stats {
@@ -54,10 +61,6 @@ body {
 .session-stats__item {
   background: rgba(79, 70, 229, 0.18);
   border: 1px solid rgba(129, 140, 248, 0.2);
-}
-
-.session-stats__item .bubble-footer__icon {
-  font-size: 0.75rem;
 }
 
 .fade-in-up {
