@@ -345,6 +345,7 @@ input[type="range"]:disabled::-ms-thumb {
   align-self: flex-end;
   align-items: flex-end;
   gap: 0.35rem;
+  position: relative;
 }
 
 .bubble-footer__toggle {
@@ -406,8 +407,7 @@ input[type="range"]:disabled::-ms-thumb {
     padding 180ms ease;
 }
 
-.bubble-footer__toggle:is(:hover, :focus, :focus-visible) + .bubble-footer,
-.bubble-footer:hover,
+.bubble-footer-wrapper.is-active .bubble-footer,
 .bubble-footer:focus-within {
   opacity: 1;
   max-height: 220px;

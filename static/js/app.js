@@ -187,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       footer = document.createElement("div");
       footer.className = "bubble-footer hidden";
+      footer.setAttribute("aria-hidden", "true");
       footerWrapper.appendChild(footer);
 
       bubble.appendChild(footerWrapper);
@@ -214,6 +215,87 @@ document.addEventListener("DOMContentLoaded", () => {
     span.appendChild(valueSpan);
 
     return span;
+  }
+
+  function setupFooterInteractions(wrapperEl, footerEl) {
+    if (!wrapperEl || !footerEl || wrapperEl.dataset.footerReady === "true") {
+      return;
+    }
+
+    const toggleBtn = wrapperEl.querySelector(".bubble-footer__toggle");
+    const bubbleEl = wrapperEl.closest(".bubble");
+    if (!toggleBtn || !bubbleEl) return;
+
+    wrapperEl.dataset.footerReady = "true";
+    toggleBtn.setAttribute("aria-expanded", "false");
+
+    let hoverTimer = null;
+    let isActive = false;
+
+    const clearHoverTimer = () => {
+      if (hoverTimer) {
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+      }
+    };
+
+    const activate = () => {
+      if (isActive) return;
+      wrapperEl.classList.add("is-active");
+      wrapperEl.classList.remove("hidden");
+      footerEl.classList.remove("hidden");
+      footerEl.setAttribute("aria-hidden", "false");
+      toggleBtn.setAttribute("aria-expanded", "true");
+      isActive = true;
+    };
+
+    const deactivate = () => {
+      if (!isActive) return;
+      wrapperEl.classList.remove("is-active");
+      footerEl.setAttribute("aria-hidden", "true");
+      toggleBtn.setAttribute("aria-expanded", "false");
+      isActive = false;
+    };
+
+    toggleBtn.addEventListener("mouseenter", () => {
+      clearHoverTimer();
+      hoverTimer = setTimeout(() => {
+        activate();
+      }, 500);
+    });
+
+    toggleBtn.addEventListener("mouseleave", () => {
+      clearHoverTimer();
+    });
+
+    toggleBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      clearHoverTimer();
+      activate();
+    });
+
+    toggleBtn.addEventListener("focus", () => {
+      clearHoverTimer();
+      activate();
+    });
+
+    toggleBtn.addEventListener("blur", (event) => {
+      const next = event.relatedTarget;
+      if (next && bubbleEl.contains(next)) {
+        return;
+      }
+      clearHoverTimer();
+      deactivate();
+    });
+
+    bubbleEl.addEventListener("mouseleave", (event) => {
+      const next = event.relatedTarget;
+      if (next && bubbleEl.contains(next)) {
+        return;
+      }
+      clearHoverTimer();
+      deactivate();
+    });
   }
 
   function updateAssistantFooter(footerEl, metadata) {
@@ -263,6 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!segments.length) {
       footerEl.classList.add("hidden");
+      footerEl.setAttribute("aria-hidden", "true");
+      wrapperEl?.classList.remove("is-active");
       wrapperEl?.classList.add("hidden");
       return;
     }
@@ -270,6 +354,8 @@ document.addEventListener("DOMContentLoaded", () => {
     segments.forEach((segment) => footerEl.appendChild(segment));
     footerEl.classList.remove("hidden");
     wrapperEl?.classList.remove("hidden");
+    footerEl.setAttribute("aria-hidden", "true");
+    setupFooterInteractions(wrapperEl, footerEl);
   }
 
   function updateSessionStats(totals) {
