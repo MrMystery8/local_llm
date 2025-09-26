@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       wrapper.classList.add("justify-start");
       bubble.classList.add("bg-slate-800", "text-slate-200");
+      bubble.classList.add("bubble--ai");
     }
 
     if (attachment) {
@@ -176,10 +177,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const footerWrapper = document.createElement("div");
       footerWrapper.className = "bubble-footer-wrapper hidden";
 
-      const hoverZone = document.createElement("div");
-      hoverZone.className = "bubble-footer__hover-zone";
-      hoverZone.setAttribute("aria-hidden", "true");
-      footerWrapper.appendChild(hoverZone);
+      const infoToggle = document.createElement("button");
+      infoToggle.type = "button";
+      infoToggle.className = "bubble-footer__toggle";
+      infoToggle.setAttribute("aria-label", "Show message details");
+      infoToggle.setAttribute("title", "Show message details");
+      infoToggle.innerHTML = '<span aria-hidden="true">i</span>';
+      footerWrapper.appendChild(infoToggle);
 
       footer = document.createElement("div");
       footer.className = "bubble-footer hidden";
