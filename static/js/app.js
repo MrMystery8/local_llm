@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const sendBtn = el("#sendBtn");
   const stopBtn = el("#stopBtn");
   const clearChatBtn = el("#clearChat");
+  const sessionStats = el("#sessionStats");
 
   // Settings Drawer
   const settingsOverlay = el("#settingsOverlay");
@@ -169,10 +170,136 @@ document.addEventListener("DOMContentLoaded", () => {
     contentDiv.innerHTML = content;
     bubble.appendChild(contentDiv);
 
+    let footer = null;
+    if (role === "ai") {
+      footer = document.createElement("div");
+      footer.className = "bubble-footer hidden";
+      bubble.appendChild(footer);
+    }
+
     wrapper.appendChild(bubble);
     chat.appendChild(wrapper);
     chat.scrollTop = chat.scrollHeight;
-    return contentDiv;
+    return { wrapper, bubble, content: contentDiv, footer };
+  }
+
+  function createFooterMetric(name, value, title = "") {
+    const span = document.createElement("span");
+    span.className = "bubble-footer__item";
+    if (title) span.title = title;
+
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "bubble-footer__name";
+    nameSpan.textContent = name;
+    span.appendChild(nameSpan);
+
+    const valueSpan = document.createElement("span");
+    valueSpan.className = "bubble-footer__value";
+    valueSpan.textContent = value;
+    span.appendChild(valueSpan);
+
+    return span;
+  }
+
+  function updateAssistantFooter(footerEl, metadata) {
+    if (!footerEl) return;
+
+    footerEl.innerHTML = "";
+    const segments = [];
+
+    const meta = metadata || {};
+    const { prompt, completion, total, serverLatency, roundTripMs } = meta;
+
+    if (typeof prompt === "number" && !Number.isNaN(prompt)) {
+      segments.push(
+        createFooterMetric("Prompt tokens", prompt.toLocaleString())
+      );
+    }
+    if (typeof completion === "number" && !Number.isNaN(completion)) {
+      segments.push(
+        createFooterMetric("Completion tokens", completion.toLocaleString())
+      );
+    }
+    if (typeof total === "number" && !Number.isNaN(total)) {
+      segments.push(
+        createFooterMetric("Total tokens", total.toLocaleString())
+      );
+    }
+    if (typeof serverLatency === "number" && !Number.isNaN(serverLatency)) {
+      segments.push(
+        createFooterMetric(
+          "Model latency",
+          `${serverLatency.toLocaleString()} ms`,
+          "Server processing time"
+        )
+      );
+    }
+    if (typeof roundTripMs === "number" && !Number.isNaN(roundTripMs)) {
+      segments.push(
+        createFooterMetric(
+          "Round-trip latency",
+          `${roundTripMs.toLocaleString()} ms`,
+          "Request and response latency"
+        )
+      );
+    }
+
+    if (!segments.length) {
+      footerEl.classList.add("hidden");
+      return;
+    }
+
+    segments.forEach((segment) => footerEl.appendChild(segment));
+    footerEl.classList.remove("hidden");
+  }
+
+  function updateSessionStats(totals) {
+    if (!sessionStats) return;
+
+    const hasTotals = totals && (typeof totals.total_tokens === "number" || typeof totals.prompt_tokens === "number" || typeof totals.completion_tokens === "number");
+    if (!hasTotals) {
+      sessionStats.classList.add("hidden");
+      sessionStats.innerHTML = "";
+      return;
+    }
+
+    const chips = [];
+    const promptTokens = totals.prompt_tokens;
+    const completionTokens = totals.completion_tokens;
+    const totalTokens = totals.total_tokens;
+
+    sessionStats.innerHTML = "";
+
+    const label = document.createElement("span");
+    label.className = "session-stats__label";
+    label.textContent = "Session usage";
+    sessionStats.appendChild(label);
+
+    if (typeof promptTokens === "number") {
+      chips.push(
+        createFooterMetric("Prompt tokens", promptTokens.toLocaleString())
+      );
+    }
+    if (typeof completionTokens === "number") {
+      chips.push(
+        createFooterMetric(
+          "Completion tokens",
+          completionTokens.toLocaleString()
+        )
+      );
+    }
+    if (typeof totalTokens === "number") {
+      chips.push(
+        createFooterMetric("Total tokens", totalTokens.toLocaleString())
+      );
+    }
+
+    chips.forEach((chip) => {
+      chip.classList.add("session-stats__item");
+      sessionStats.appendChild(chip);
+    });
+
+    sessionStats.classList.remove("hidden");
   }
 
   function getSettings() {
@@ -198,15 +325,17 @@ document.addEventListener("DOMContentLoaded", () => {
       removeImage();
     }
 
-    const aiBubble = addMessage("ai", "");
+    const aiMessage = addMessage("ai", "");
     const cursor = document.createElement("span");
     cursor.className = "typing";
     cursor.textContent = "▍";
-    aiBubble.appendChild(cursor);
+    aiMessage.content.appendChild(cursor);
 
     sendBtn.classList.add("hidden");
     stopBtn.classList.remove("hidden");
     controller = new AbortController();
+
+    const requestStarted = performance.now();
 
     try {
       const resp = await fetch("/api/chat", {
@@ -243,25 +372,42 @@ document.addEventListener("DOMContentLoaded", () => {
         responseText += decoder.decode(value, { stream: true });
         chat.scrollTop = chat.scrollHeight;
       }
-      
+
       try {
         const json = JSON.parse(responseText);
         if (json.reply) {
           const formattedReply = converter.makeHtml(json.reply);
-          aiBubble.innerHTML = formattedReply;
+          aiMessage.content.innerHTML = formattedReply;
         } else {
-            aiBubble.textContent = responseText;
+            aiMessage.content.textContent = responseText;
+        }
+
+        const usage = json.usage || {};
+        const metadata = {
+          prompt: typeof usage.prompt_tokens === "number" ? usage.prompt_tokens : Number.parseInt(usage.prompt_tokens, 10),
+          completion: typeof usage.completion_tokens === "number" ? usage.completion_tokens : Number.parseInt(usage.completion_tokens, 10),
+          total: typeof usage.total_tokens === "number" ? usage.total_tokens : Number.parseInt(usage.total_tokens, 10),
+          serverLatency: typeof json.latency_ms === "number" ? json.latency_ms : Number.parseInt(json.latency_ms, 10),
+          roundTripMs: Math.round(performance.now() - requestStarted),
+        };
+
+        updateAssistantFooter(aiMessage.footer, metadata);
+
+        if (json.session_totals) {
+          updateSessionStats(json.session_totals);
         }
       } catch (err) {
-        aiBubble.textContent = responseText;
+        aiMessage.content.textContent = responseText;
+        updateAssistantFooter(aiMessage.footer, null);
       }
 
     } catch (err) {
       if (err.name !== 'AbortError') {
-        aiBubble.textContent = `[Error: ${err.message}]`;
+        aiMessage.content.textContent = `[Error: ${err.message}]`;
+        updateAssistantFooter(aiMessage.footer, null);
       }
     } finally {
-      aiBubble.querySelector(".typing")?.remove();
+      aiMessage.content.querySelector(".typing")?.remove();
       sendBtn.classList.remove("hidden");
       stopBtn.classList.add("hidden");
       controller = null;
@@ -273,6 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await fetch("/api/reset", { method: "POST" });
       chat.innerHTML = '';
       addMessage('ai', 'Chat cleared.');
+      updateSessionStats(null);
       removeImage();
       notify("Chat history has been cleared.");
     } catch (err) {
@@ -435,5 +582,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Init ---
   loadSettings();
+  updateSessionStats(null);
   fetchModels();
 });
