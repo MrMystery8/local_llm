@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     apiKeyInp.value = s.apiKey || "";
     systemPromptInp.value = s.systemPrompt || "You are a helpful assistant.";
     tempInp.value = s.temperature ?? 0.7;
-    tempVal.textContent = parseFloat(tempInp.value).toFixed(1);
+    updateTemperatureUI();
     maxTokensInp.value = s.maxTokens || "";
     imageDetailSelect.value = (s.imageDetail || "high");
     updateVisionTools();
@@ -558,9 +558,16 @@ document.addEventListener("DOMContentLoaded", () => {
   baseUrlInp.addEventListener("change", fetchModels);
 
   // Temperature slider
-  tempInp.addEventListener("input", () => {
-    tempVal.textContent = parseFloat(tempInp.value).toFixed(1);
-  });
+  function updateTemperatureUI() {
+    const value = parseFloat(tempInp.value);
+    const min = parseFloat(tempInp.min || "0");
+    const max = parseFloat(tempInp.max || "1");
+    const percent = ((value - min) / (max - min || 1)) * 100;
+    tempVal.textContent = value.toFixed(1);
+    tempInp.style.setProperty("--slider-fill", `${Math.min(100, Math.max(0, percent))}%`);
+  }
+
+  tempInp.addEventListener("input", updateTemperatureUI);
 
   // Vision
   imageUploadBtn.addEventListener("click", () => imageFileInput.click());
