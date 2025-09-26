@@ -265,3 +265,23 @@ body {
 body.drawer-open {
   overflow: hidden;
 }
+
+.typing {
+  display: inline-block;
+  animation: typingPulse 1s ease-in-out infinite;
+}
+
+@keyframes typingPulse {
+  0% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+}
