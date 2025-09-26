@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const el = (s) => document.querySelector(s);
+  document.body.classList.remove("drawer-open");
   const converter = new showdown.Converter({
     ghCompatibleHeaderId: true,
     simpleLineBreaks: true,
@@ -525,9 +526,11 @@ document.addEventListener("DOMContentLoaded", () => {
   openSettingsBtn.addEventListener("click", () => {
     settingsOverlay.classList.remove("hidden");
     settingsDrawer.classList.remove("translate-x-full");
+    document.body.classList.add("drawer-open");
   });
 
   const closeDrawer = () => {
+    document.body.classList.remove("drawer-open");
     settingsOverlay.classList.add("hidden");
     settingsDrawer.classList.add("translate-x-full");
   };
