@@ -173,9 +173,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let footer = null;
     if (role === "ai") {
+      const footerWrapper = document.createElement("div");
+      footerWrapper.className = "bubble-footer-wrapper hidden";
+
+      const hoverZone = document.createElement("div");
+      hoverZone.className = "bubble-footer__hover-zone";
+      hoverZone.setAttribute("aria-hidden", "true");
+      footerWrapper.appendChild(hoverZone);
+
       footer = document.createElement("div");
       footer.className = "bubble-footer hidden";
-      bubble.appendChild(footer);
+      footerWrapper.appendChild(footer);
+
+      bubble.appendChild(footerWrapper);
     }
 
     wrapper.appendChild(bubble);
@@ -207,6 +217,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     footerEl.innerHTML = "";
     const segments = [];
+
+    const wrapperEl = footerEl.parentElement;
 
     const meta = metadata || {};
     const { prompt, completion, total, serverLatency, roundTripMs } = meta;
@@ -247,11 +259,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!segments.length) {
       footerEl.classList.add("hidden");
+      wrapperEl?.classList.add("hidden");
       return;
     }
 
     segments.forEach((segment) => footerEl.appendChild(segment));
     footerEl.classList.remove("hidden");
+    wrapperEl?.classList.remove("hidden");
   }
 
   function updateSessionStats(totals) {
