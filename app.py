@@ -1,6 +1,7 @@
-﻿import os
+import os
 from datetime import timedelta
-from typing import Iterable, List, Union
+from time import perf_counter
+from typing import Iterable, List, Optional, Union
 
 from flask import Flask, jsonify, render_template, request, session
 from openai import OpenAI
@@ -68,6 +69,57 @@ def add_message(role, content):
     session["history"] = history
 
 
+def _usage_to_dict(usage) -> Optional[dict]:
+    if not usage:
+        return None
+
+    data = None
+    if hasattr(usage, "model_dump"):
+        data = usage.model_dump()
+    elif isinstance(usage, dict):
+        data = usage
+    else:
+        data = {
+            "prompt_tokens": getattr(usage, "prompt_tokens", None),
+            "completion_tokens": getattr(usage, "completion_tokens", None),
+            "total_tokens": getattr(usage, "total_tokens", None),
+        }
+
+    cleaned = {}
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+        value = None
+        if isinstance(data, dict):
+            value = data.get(key)
+        if value is None:
+            continue
+        try:
+            cleaned[key] = int(value)
+        except (TypeError, ValueError):
+            continue
+
+    return cleaned or None
+
+
+def _update_session_usage(usage_dict: Optional[dict]) -> Optional[dict]:
+    if not usage_dict:
+        return None
+
+    totals = session.get("usage_totals") or {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+    }
+
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+        value = usage_dict.get(key)
+        if value is None:
+            continue
+        totals[key] = int(totals.get(key, 0)) + int(value)
+
+    session["usage_totals"] = totals
+    return totals
+
+
 @app.route("/")
 def index():
     return render_template("index.html", default_base_url=DEFAULT_BASE_URL, default_model=DEFAULT_MODEL)
@@ -76,6 +128,7 @@ def index():
 @app.route("/api/reset", methods=["POST"])
 def reset_chat():
     session["history"] = []
+    session.pop("usage_totals", None)
     return jsonify({"ok": True})
 
 
@@ -202,7 +255,9 @@ def chat():
         if max_tokens is not None:
             kwargs["max_tokens"] = max_tokens
 
+        start_time = perf_counter()
         completion = client.chat.completions.create(**kwargs)
+        latency_ms = int((perf_counter() - start_time) * 1000)
         choice = completion.choices[0] if completion.choices else None
         assistant_text = ""
         if choice is not None:
@@ -210,7 +265,16 @@ def chat():
             if message is not None:
                 assistant_text = getattr(message, "content", "") or ""
         add_message("assistant", assistant_text)
-        return jsonify({"reply": assistant_text})
+        usage = _usage_to_dict(getattr(completion, "usage", None))
+        session_totals = _update_session_usage(usage)
+        payload = {
+            "reply": assistant_text,
+            "latency_ms": latency_ms,
+            "usage": usage or {},
+        }
+        if session_totals:
+            payload["session_totals"] = session_totals
+        return jsonify(payload)
     except Exception as exc:  # pragma: no cover - external dependency
         return jsonify({"error": str(exc)}), 500
 

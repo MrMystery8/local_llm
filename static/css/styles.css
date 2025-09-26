@@ -8,6 +8,58 @@ body {
   background-color: #020617;
 }
 
+.bubble-footer {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.65rem;
+  line-height: 1.1;
+  color: #94a3b8;
+}
+
+.bubble-footer__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(148, 163, 184, 0.12);
+  color: inherit;
+  backdrop-filter: blur(6px);
+}
+
+.bubble-footer__icon {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.session-stats {
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.session-stats__label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #cbd5f5;
+}
+
+.session-stats__item {
+  background: rgba(79, 70, 229, 0.18);
+  border: 1px solid rgba(129, 140, 248, 0.2);
+}
+
+.session-stats__item .bubble-footer__icon {
+  font-size: 0.75rem;
+}
+
 .fade-in-up {
   animation: fade-in-up 0.35s ease-out both;
 }
