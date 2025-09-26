@@ -406,8 +406,9 @@ input[type="range"]:disabled::-ms-thumb {
     padding 180ms ease;
 }
 
-.bubble-footer-wrapper:hover .bubble-footer,
-.bubble-footer-wrapper:focus-within .bubble-footer {
+.bubble-footer__toggle:is(:hover, :focus, :focus-visible) + .bubble-footer,
+.bubble-footer:hover,
+.bubble-footer:focus-within {
   opacity: 1;
   max-height: 220px;
   padding: 0.45rem 0.55rem;
