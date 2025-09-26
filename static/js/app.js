@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       wrapper.classList.add("justify-start");
       bubble.classList.add("bg-slate-800", "text-slate-200");
+      bubble.classList.add("bubble--ai");
     }
 
     if (attachment) {
@@ -173,9 +174,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let footer = null;
     if (role === "ai") {
+      const footerWrapper = document.createElement("div");
+      footerWrapper.className = "bubble-footer-wrapper hidden";
+
+      const infoToggle = document.createElement("button");
+      infoToggle.type = "button";
+      infoToggle.className = "bubble-footer__toggle";
+      infoToggle.setAttribute("aria-label", "Show message details");
+      infoToggle.setAttribute("title", "Show message details");
+      infoToggle.innerHTML = '<span aria-hidden="true">i</span>';
+      footerWrapper.appendChild(infoToggle);
+
       footer = document.createElement("div");
       footer.className = "bubble-footer hidden";
-      bubble.appendChild(footer);
+      footer.setAttribute("aria-hidden", "true");
+      footerWrapper.appendChild(footer);
+
+      bubble.appendChild(footerWrapper);
     }
 
     wrapper.appendChild(bubble);
@@ -202,11 +217,94 @@ document.addEventListener("DOMContentLoaded", () => {
     return span;
   }
 
+  function setupFooterInteractions(wrapperEl, footerEl) {
+    if (!wrapperEl || !footerEl || wrapperEl.dataset.footerReady === "true") {
+      return;
+    }
+
+    const toggleBtn = wrapperEl.querySelector(".bubble-footer__toggle");
+    const bubbleEl = wrapperEl.closest(".bubble");
+    if (!toggleBtn || !bubbleEl) return;
+
+    wrapperEl.dataset.footerReady = "true";
+    toggleBtn.setAttribute("aria-expanded", "false");
+
+    let hoverTimer = null;
+    let isActive = false;
+
+    const clearHoverTimer = () => {
+      if (hoverTimer) {
+        clearTimeout(hoverTimer);
+        hoverTimer = null;
+      }
+    };
+
+    const activate = () => {
+      if (isActive) return;
+      wrapperEl.classList.add("is-active");
+      wrapperEl.classList.remove("hidden");
+      footerEl.classList.remove("hidden");
+      footerEl.setAttribute("aria-hidden", "false");
+      toggleBtn.setAttribute("aria-expanded", "true");
+      isActive = true;
+    };
+
+    const deactivate = () => {
+      if (!isActive) return;
+      wrapperEl.classList.remove("is-active");
+      footerEl.setAttribute("aria-hidden", "true");
+      toggleBtn.setAttribute("aria-expanded", "false");
+      isActive = false;
+    };
+
+    toggleBtn.addEventListener("mouseenter", () => {
+      clearHoverTimer();
+      hoverTimer = setTimeout(() => {
+        activate();
+      }, 500);
+    });
+
+    toggleBtn.addEventListener("mouseleave", () => {
+      clearHoverTimer();
+    });
+
+    toggleBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      clearHoverTimer();
+      activate();
+    });
+
+    toggleBtn.addEventListener("focus", () => {
+      clearHoverTimer();
+      activate();
+    });
+
+    toggleBtn.addEventListener("blur", (event) => {
+      const next = event.relatedTarget;
+      if (next && bubbleEl.contains(next)) {
+        return;
+      }
+      clearHoverTimer();
+      deactivate();
+    });
+
+    bubbleEl.addEventListener("mouseleave", (event) => {
+      const next = event.relatedTarget;
+      if (next && bubbleEl.contains(next)) {
+        return;
+      }
+      clearHoverTimer();
+      deactivate();
+    });
+  }
+
   function updateAssistantFooter(footerEl, metadata) {
     if (!footerEl) return;
 
     footerEl.innerHTML = "";
     const segments = [];
+
+    const wrapperEl = footerEl.parentElement;
 
     const meta = metadata || {};
     const { prompt, completion, total, serverLatency, roundTripMs } = meta;
@@ -247,11 +345,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!segments.length) {
       footerEl.classList.add("hidden");
+      footerEl.setAttribute("aria-hidden", "true");
+      wrapperEl?.classList.remove("is-active");
+      wrapperEl?.classList.add("hidden");
       return;
     }
 
     segments.forEach((segment) => footerEl.appendChild(segment));
     footerEl.classList.remove("hidden");
+    wrapperEl?.classList.remove("hidden");
+    footerEl.setAttribute("aria-hidden", "true");
+    setupFooterInteractions(wrapperEl, footerEl);
   }
 
   function updateSessionStats(totals) {
