@@ -42,10 +42,10 @@
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button id="clearChat" type="button" class="button button--icon button--ghost" title="Clear chat">
+            <button id="clearChat" type="button" class="button button--icon button--ghost" title="Clear chat" aria-label="Clear chat history">
               <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
             </button>
-            <button id="openSettings" type="button" class="button button--icon button--ghost" title="Settings">
+            <button id="openSettings" type="button" class="button button--icon button--ghost" title="Settings" aria-label="Open settings">
               <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
             </button>
           </div>
@@ -67,7 +67,7 @@
                 <p id="imagePreviewMeta" class="text-xs font-medium text-slate-200"></p>
                 <p class="text-xs text-slate-400">Image attached</p>
               </div>
-              <button id="removeImageBtn" type="button" class="ml-auto button button--icon-sm button--circle button--ghost" title="Remove image">
+              <button id="removeImageBtn" type="button" class="ml-auto button button--icon-sm button--circle button--ghost" title="Remove image" aria-label="Remove attached image">
                 <svg class="m-auto h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
@@ -88,10 +88,10 @@
           <div class="relative">
             <textarea id="userInput" rows="1" placeholder="Ask a question..." class="w-full resize-none rounded-lg border border-white/10 bg-slate-800/70 py-3 pl-4 pr-28 text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"></textarea>
             <div class="absolute right-2 top-1/2 flex -translate-y-1/2 transform items-center gap-2">
-              <button id="stopBtn" type="button" class="button button--icon button--danger hidden" title="Stop generation">
+              <button id="stopBtn" type="button" class="button button--icon button--danger hidden" title="Stop generation" aria-label="Stop response generation">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1" /></svg>
               </button>
-              <button id="sendBtn" type="button" class="button button--primary" title="Send message">
+              <button id="sendBtn" type="button" class="button button--primary" title="Send message" aria-label="Send message">
                 <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
               </button>
             </div>
@@ -104,7 +104,7 @@
     <aside id="settingsDrawer" class="fixed right-0 top-0 z-50 flex h-full w-full max-w-md translate-x-full flex-col bg-slate-900/95 text-slate-100 shadow-2xl backdrop-blur-lg transition-transform duration-300">
       <div class="flex items-center justify-between border-b border-white/10 p-4">
         <h2 class="text-lg font-semibold text-white">Settings</h2>
-        <button id="closeSettings" type="button" class="button button--icon-sm button--ghost">
+        <button id="closeSettings" type="button" class="button button--icon-sm button--ghost" aria-label="Close settings">
           <svg class="m-auto h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
         </button>
       </div>
@@ -119,7 +119,7 @@
             <select id="modelSelect" class="flex-1 rounded-lg border border-white/10 bg-slate-800/70 p-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
               <option value="">Select a model</option>
             </select>
-            <button id="refreshModels" type="button" class="button button--icon button--ghost flex-shrink-0" title="Refresh models">
+            <button id="refreshModels" type="button" class="button button--icon button--ghost flex-shrink-0" title="Refresh models" aria-label="Refresh model list">
               <svg class="m-auto h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
             </button>
           </div>
